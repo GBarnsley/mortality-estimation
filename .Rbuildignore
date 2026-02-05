@@ -1,0 +1,11 @@
+^mortality-estimation\.Rproj$
+^\.Rproj\.user$
+^\.DS_Store$
+^LICENSE\.md$
+^\.$
+^make\.R$
+^CONTRIBUTING\.md$
+^\.github$
+^CODE_OF_CONDUCT\.md$
+^README\.Rmd$
+^README\.html$

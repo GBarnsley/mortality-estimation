@@ -1,0 +1,21 @@
+Package: mortality-estimation
+Type: Package
+Title: The Title of the Project
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given   = "Greg",
+           family  = "Barnsley",
+           role    = c("aut", "cre", "cph"),
+           email   = "63357847+GBarnsley@users.noreply.github.com",
+           comment = c(ORCID = "{{orcid}}")))
+Description: A paragraph providing a full description of the project (on 
+    several lines...)
+URL: https://github.com/GBarnsley/mortality-estimation
+BugReports: https://github.com/GBarnsley/mortality-estimation/issues
+License: GPL (>= 2)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports: 
+    devtools,
+    here
