@@ -7,7 +7,7 @@ Authors@R: c(
            family  = "Barnsley",
            role    = c("aut", "cre", "cph"),
            email   = "63357847+GBarnsley@users.noreply.github.com",
-           comment = c(ORCID = "{{orcid}}")))
+           comment = c(ORCID = "0000-0001-7972-0737")))
 Description: A paragraph providing a full description of the project (on 
     several lines...)
 URL: https://github.com/GBarnsley/mortality-estimation
