@@ -57,11 +57,13 @@ The project uses **roxygen** to generate documentation for any functions defined
 - **Add a new R Package** use `renv::install()`
 - **version control** ensure `renv` is always active
 - **Write new functions** all new functions go in `/R/`, prefer to use `tidyverse` functions where possible
-- **Add tests** IFF new functions are complicate add unit testing using `tests`
+- **Add tests** IFF new functions are complicate add unit testing using `testthat`
 - **Write analysis scripts** write in `/analysis/` update `Makefile` with script and outputs
 - **Load functions** In analysis scripts use `devtools::load_all(here::here())` to load locally defined functions and library for packages in the `renv`
 - **Save results** data in `/data/derived-data/`, and figures in `/figures/`
 - **Clean Code Review**: Run `@clean-code-reviewer` agent on all new/modified code for review
+
+Ensure strict adherence to the native pipe |> as per our style guide
 
 **THIS PROJECT USES A MAKEFILE BUT IS CURRENTLY WIP, SO ENSURE SCRIPTS RUN STANDALONE AND DO NOT EXPECT make TO FUNCTION**
 
