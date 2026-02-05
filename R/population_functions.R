@@ -15,6 +15,7 @@ standardize_governorate <- function(x) {
         "Deir El Balah"
       ) ~ "Deir al-Balah",
     x %in% c("Gaza City", "Gaza") ~ "Gaza",
+    x %in% c("Jabalia", "North Gaza") ~ "North Gaza",
     TRUE ~ x
   )
 
@@ -218,8 +219,7 @@ load_population_totals <- function(path) {
       governorate = standardize_governorate(governorate)
     ) |>
     dplyr::filter(
-      governorate %in%
-        c("North Gaza", "Gaza", "Deir al-Balah", "Khan Yunis", "Rafah")
+      governorate %in% GAZA_GOVERNORATES
     )
 
   combined_estimates <- dplyr::bind_rows(

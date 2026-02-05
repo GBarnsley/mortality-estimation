@@ -1,4 +1,4 @@
-Please read the instructions in @gemini_tasks/conflict.md.
+Please read the instructions in @gemini_tasks/mortality.md.
 We are going to do the work described there.
 
 **Before starting:**
