@@ -118,12 +118,17 @@ clean_census_data <- function(path) {
       df$age_group <- vapply(
         df$age_group_raw,
         function(x) {
+          # Parse numeric start of age group
           if (grepl("^[0-9]+ - [0-9]+$", x)) {
+            # Handles "4 - 0", "9 - 5", etc.
             parts <- strsplit(x, " - ")[[1]]
-            return(paste(parts[2], parts[1], sep = "-"))
+            age <- as.numeric(parts[2])
+            return(categorize_age(age))
           }
           if (grepl("^\\+ [0-9]+$", x)) {
-            return(paste0(gsub("^\\+ ", "", x), "+"))
+            # Handles "+ 95"
+            age <- as.numeric(gsub("^\\+ ", "", x))
+            return(categorize_age(age))
           }
           return(x)
         },

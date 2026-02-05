@@ -25,10 +25,10 @@ categorize_age <- function(age) {
 #' @return Age in years
 #' @export
 calculate_age <- function(start_date, end_date) {
-  as.numeric(
+  floor(as.numeric(
     lubridate::as.period(lubridate::interval(start_date, end_date)),
     "years"
-  )
+  ))
 }
 
 #' Determine if cause is trauma (V-Y codes)
