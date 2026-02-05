@@ -4,17 +4,27 @@
 #' @return A character vector with standardized names
 #' @export
 standardize_governorate <- function(x) {
-  dplyr::case_when(
+  standardized <- dplyr::case_when(
     x %in% c("Khan Zunis", "Khan Yunis") ~ "Khan Yunis",
     x %in%
       c(
         "Deir al Balah",
         "Dier al Balah",
         "Middle Area",
-        "Deir al-Balah"
+        "Deir al-Balah",
+        "Deir El Balah"
       ) ~ "Deir al-Balah",
+    x %in% c("Gaza City", "Gaza") ~ "Gaza",
     TRUE ~ x
   )
+
+  # Check if any non-NA names are not in the canonical list
+  unknown <- setdiff(na.omit(standardized), GAZA_GOVERNORATES)
+  if (length(unknown) > 0) {
+    cli::cli_warn("Unknown governorate names detected: {.val {unknown}}")
+  }
+
+  return(standardized)
 }
 
 #' Clean 2017 Census Data for Gaza

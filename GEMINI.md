@@ -36,7 +36,7 @@ mortality-estimation/
 │   ├── raw-data/                 # Read-only files
 │   └── derived-data/             # Modified data derived from raw data
 │
-├── analyses/                     # R scripts (not function) to run analyses, generally called via Makefile
+├── analysis/                     # R scripts (not function) to run analyses, generally called via Makefile
 │
 ├── figures/                      # Figures (.png, .pdf, etc.)
 │

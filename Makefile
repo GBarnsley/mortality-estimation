@@ -8,8 +8,11 @@ renv.ts: renv.lock
 	touch renv.ts
 
 #format data
-data/derived-data/population.rds: analyses/population.R R/population_functions.R data/raw-data/2017-census.csv data/raw-data/GAZA\ STRIP\ -\ OPT\ Pop\ Est.xlsx
-	Rscript analyses/population.R
+data/derived-data/population.rds: analysis/population.R R/population_functions.R R/constants.R data/raw-data/2017-census.csv data/raw-data/GAZA\ STRIP\ -\ OPT\ Pop\ Est.xlsx
+	Rscript analysis/population.R
+
+data/derived-data/conflict.rds: analysis/conflict.R R/conflict_functions.R R/population_functions.R R/constants.R data/raw-data/israel_palestine_full_data_up_to-2025-11-28.csv
+	Rscript analysis/conflict.R
 
 #model fitting
 

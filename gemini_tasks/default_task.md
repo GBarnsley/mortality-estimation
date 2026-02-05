@@ -1,4 +1,4 @@
-Please read the instructions in @gemini_tasks/population_data.md.
+Please read the instructions in @gemini_tasks/conflict.md.
 We are going to do the work described there.
 
 **Before starting:**
