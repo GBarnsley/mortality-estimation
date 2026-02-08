@@ -15,7 +15,7 @@ categorize_age <- function(age) {
     right = FALSE,
     include.lowest = TRUE
   ) |>
-    as.character()
+    as.factor()
 }
 
 #' Calculate age in years from two dates

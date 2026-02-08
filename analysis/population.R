@@ -66,7 +66,10 @@ final_population_estimates <- interpolated_pop_monthly |>
     relationship = "many-to-many"
   ) |>
   mutate(count = total_population * prop) |>
-  select(date, governorate, sex, age_group, count)
+  select(date, governorate, sex, age_group, count) |>
+  mutate(
+    sex = unlist(list(Males = "Male", Females = "Female")[sex])
+  )
 
 # 5. Save results
 message(paste("Saving results to", POP_EST_DERIVED_PATH))
@@ -128,7 +131,7 @@ ggsave(
 p_age <- final_population_estimates |>
   group_by(date, governorate, age_group) |>
   summarise(count = sum(count), .groups = "drop") |>
-  ggplot(aes(x = date, y = count, color = age_group)) +
+  ggplot(aes(x = date, y = count, color = age_group, group = age_group)) +
   geom_line() +
   facet_wrap(vars(governorate), scales = "free_y") +
   theme_minimal() +

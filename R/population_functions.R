@@ -115,7 +115,7 @@ clean_census_data <- function(path) {
       df <- df[!(df$age_group_raw %in% summary_groups), ]
 
       # Correct labels: "4 - 0" -> "0-4", "9 - 5" -> "5-9", "+ 95" -> "95+"
-      df$age_group <- vapply(
+      df$age_group <- purrr::map_vec(
         df$age_group_raw,
         function(x) {
           # Parse numeric start of age group
@@ -131,8 +131,7 @@ clean_census_data <- function(path) {
             return(categorize_age(age))
           }
           return(x)
-        },
-        FUN.VALUE = character(1)
+        }
       )
 
       df$age_group_raw <- NULL
