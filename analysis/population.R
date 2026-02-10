@@ -12,8 +12,10 @@ library(here)
 devtools::load_all(here::here())
 
 # Constants
-CENSUS_RAW_PATH <- here::here("data/raw-data/2017-census.csv")
-POP_EST_RAW_PATH <- here::here("data/raw-data/GAZA STRIP - OPT Pop Est.xlsx")
+CENSUS_RAW_PATH <- here::here("data/raw-data/sensitive/2017-census.csv")
+POP_EST_RAW_PATH <- here::here(
+  "data/raw-data/sensitive/GAZA STRIP - OPT Pop Est.xlsx"
+)
 POP_EST_DERIVED_PATH <- here::here("data/derived-data/population.rds")
 
 START_DATE <- as.Date("2023-09-01")

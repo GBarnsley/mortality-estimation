@@ -6,7 +6,7 @@ This work is to be completed in @analysis/mortality.R
 Write any functions to @R
 
 # Data:
-- data/raw-data/Mortality_with_ICD10.csv: Contains events by date and region
+- data/raw-data/sensitive/Mortality_with_ICD10.csv: Contains events by date and region
 
 # Steps:
 1. Load data

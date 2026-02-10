@@ -6,8 +6,8 @@ This work is to be complete in @analysis/population.R
 Write any functions to @R
 
 # Data:
-- data/raw-data/2017-census.csv: Contains the age/sex distributions by region.
-- data/raw-data/GAZA STRIP - OPT Pop Est.xlsx: Sheet1 estimates of the total population by governorate over time. Sheet2: other estimates of population by region
+- data/raw-data/sensitive/2017-census.csv: Contains the age/sex distributions by region.
+- data/raw-data/sensitive/GAZA STRIP - OPT Pop Est.xlsx: Sheet1 estimates of the total population by governorate over time. Sheet2: other estimates of population by region
 
 # Steps:
 1. Load data from GAZA STRIP - OPT Pop Est.xlsx, maybe tricky due to lack of a standard structure

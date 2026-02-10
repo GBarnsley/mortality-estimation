@@ -11,9 +11,20 @@ library(here)
 devtools::load_all(here::here())
 
 # Constants
-MORTALITY_RAW_PATH <- here::here("data/raw-data/Mortality_with_ICD10.csv")
+MORTALITY_RAW_PATH <- here::here(
+  "data/raw-data/sensitive/Mortality_with_ICD10.csv"
+)
 MORTALITY_DERIVED_PATH <- here::here("data/derived-data/mortality.rds")
 PLOT_DIR <- here::here("figures/exploration/mortality")
+
+GOVERNORATE_FACILITY_LOOKUP <- read.csv(
+  here::here("data/raw-data/facility_governorate_lookup.csv"),
+  stringsAsFactors = FALSE
+) |>
+  mutate(
+    Facility_Name = standardize_string(Facility_Name)
+  ) |>
+  pull(Governorate, name = Facility_Name)
 
 START_DATE <- as.Date("2015-01-01")
 END_DATE <- as.Date("2025-12-01")
@@ -31,7 +42,8 @@ required_cols <- c(
   "Date_of_Birth",
   "Gender",
   "Region",
-  "ICD1_Code"
+  "ICD1_Code",
+  "Hospital_Name"
 )
 missing_cols <- setdiff(required_cols, names(raw_mortality))
 if (length(missing_cols) > 0) {
@@ -60,14 +72,23 @@ processed_mortality <- raw_mortality |>
   mutate(
     governorate = standardize_governorate(Region)
   ) |>
-  # Handle missing/unknown governorates for Gaza
   mutate(
     governorate = case_when(
       governorate %in% c("", "?????") ~ "Unknown",
       TRUE ~ governorate
     )
   ) |>
-  # Keep only Gaza governorates or Unknown
+  # Impute Governorate based on Hospital_Name
+  mutate(
+    governorate = case_when(
+      !(governorate %in% GAZA_GOVERNORATES) &
+        standardize_string(Hospital_Name) %in%
+          names(GOVERNORATE_FACILITY_LOOKUP) ~ GOVERNORATE_FACILITY_LOOKUP[
+        standardize_string(Hospital_Name)
+      ],
+      TRUE ~ governorate
+    )
+  ) |>
   filter(governorate %in% GAZA_GOVERNORATES | governorate == "Unknown") |>
   # Determine cause (Trauma vs Non-Trauma)
   # Only for dates after conflict started
@@ -146,6 +167,33 @@ p_gov <- mortality_counts |>
 ggsave(
   file.path(PLOT_DIR, "deaths_by_governorate.png"),
   p_gov,
+  width = 10,
+  height = 6
+)
+
+# Prop unknown
+p_prop_unknown <- mortality_counts |>
+  group_by(date) |>
+  summarise(
+    deaths = sum(deaths[governorate == "Unknown"]) / sum(deaths),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = date, y = deaths)) +
+  geom_col() +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  geom_vline(
+    xintercept = CONFLICT_START_DATE,
+    linetype = "dashed"
+  ) +
+  labs(
+    x = "Date",
+    y = "% of Monthly deaths that have unknown governorate"
+  )
+
+ggsave(
+  file.path(PLOT_DIR, "prop_deaths_unknown.png"),
+  p_prop_unknown,
   width = 10,
   height = 6
 )

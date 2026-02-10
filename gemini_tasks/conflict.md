@@ -6,7 +6,7 @@ This work is to be completed in @analysis/conflict.R
 Write any functions to @R
 
 # Data:
-- data/raw-data/israel_palestine_full_data_up_to-2025-11-28.csv: Contains events by date and region
+- data/raw-data/sensitive/israel_palestine_full_data_up_to-2025-11-28.csv: Contains events by date and region
 
 # Steps:
 1. Load data

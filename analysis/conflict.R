@@ -12,7 +12,7 @@ devtools::load_all(here::here())
 
 # Constants
 CONFLICT_RAW_PATH <- here::here(
-  "data/raw-data/israel_palestine_full_data_up_to-2025-11-28.csv"
+  "data/raw-data/sensitive/israel_palestine_full_data_up_to-2025-11-28.csv"
 )
 CONFLICT_DERIVED_PATH <- here::here("data/derived-data/conflict.rds")
 

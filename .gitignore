@@ -22,5 +22,6 @@ inst/doc
 man/
 NAMESPACE
 
-data/
+data/derived-data/
+data/raw-data/sensitive/
 figures/

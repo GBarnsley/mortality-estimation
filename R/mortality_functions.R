@@ -18,6 +18,18 @@ categorize_age <- function(age) {
     as.factor()
 }
 
+#' Standardize String
+#'
+#' Removes everything but letters and converts to uppercase for consistent matching
+#' @param x A character vector
+#' @return A standardized character vector
+#' @export
+standardize_string <- function(x) {
+  stringr::str_to_upper(x) |>
+    stringr::str_extract_all("[A-Z]+") |>
+    purrr::map_chr(stringr::str_c, collapse = "")
+}
+
 #' Calculate age in years from two dates
 #'
 #' @param start_date Date of birth
