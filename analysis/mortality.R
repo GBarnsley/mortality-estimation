@@ -81,7 +81,7 @@ processed_mortality <- raw_mortality |>
   # Impute Governorate based on Hospital_Name
   mutate(
     governorate = case_when(
-      !(governorate %in% GAZA_GOVERNORATES) &
+      (!(governorate %in% GAZA_GOVERNORATES)) &
         standardize_string(Hospital_Name) %in%
           names(GOVERNORATE_FACILITY_LOOKUP) ~ GOVERNORATE_FACILITY_LOOKUP[
         standardize_string(Hospital_Name)
