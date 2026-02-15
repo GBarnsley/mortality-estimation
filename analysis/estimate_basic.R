@@ -123,11 +123,13 @@ fit0 <- vrcm(
     reporting = vrc_reporting(~1),
     data = all_data,
     t0 = t0,
-    chains = 4,
-    cores = 4,
+    chains = 2,
+    cores = 2,
     iter = 1000,
     seed = 1
 )
+
+saveRDS(fit0, "data/derived-date/model_fit_basic.rds")
 
 plot(fit0, type = "reporting")
 plot(fit0, type = "mortality", value = "true_deaths")
