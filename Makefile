@@ -6,7 +6,7 @@ renv.ts: renv.lock
 	touch renv.ts
 
 #format data
-data/derived-data/population.rds: analysis/population.R R/population_functions.R R/constants.R data/raw-data/sensitive/2017-census.csv data/raw-data/sensitive/GAZA\ STRIP\ -\ OPT\ Pop\ Est.xlsx
+data/derived-data/population.rds: analysis/population.R R/population_functions.R R/constants.R data/raw-data/sensitive/2017-census.csv data/raw-data/sensitive/population_by_governorate.csv
 	Rscript analysis/population.R
 
 data/derived-data/mortality.rds: analysis/mortality.R R/mortality_functions.R R/population_functions.R R/constants.R data/raw-data/sensitive/Mortality_with_ICD10.csv

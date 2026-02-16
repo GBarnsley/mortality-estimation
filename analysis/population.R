@@ -5,7 +5,7 @@ library(dplyr)
 library(tidyr)
 library(zoo)
 library(lubridate)
-library(readxl)
+library(ggplot2)
 library(here)
 
 # Load helper functions
@@ -14,12 +14,12 @@ devtools::load_all(here::here())
 # Constants
 CENSUS_RAW_PATH <- here::here("data/raw-data/sensitive/2017-census.csv")
 POP_EST_RAW_PATH <- here::here(
-  "data/raw-data/sensitive/GAZA STRIP - OPT Pop Est.xlsx"
+  "data/raw-data/sensitive/population_by_governorate.csv"
 )
 POP_EST_DERIVED_PATH <- here::here("data/derived-data/population.rds")
 
-START_DATE <- as.Date("2023-09-01")
-END_DATE <- as.Date("2025-12-01")
+START_DATE <- as.Date("2016-01-01")
+END_DATE <- as.Date("2025-12-31") # End of 2025
 GOVERNORATES <- GAZA_GOVERNORATES
 
 # 1. Clean census data to get proportions
@@ -30,30 +30,18 @@ if (nrow(census_age_sex_props) == 0) {
   cli::cli_abort("Census proportions data is empty.")
 }
 
-# 2. Load population totals from Excel
+# 2. Load population totals from CSV
 message("Loading population totals...")
-observed_pop_totals <- load_population_totals(POP_EST_RAW_PATH)
+observed_pop_totals <- load_governorate_population_csv(POP_EST_RAW_PATH)
 
 # 3. Create monthly timeline and interpolate totals
-message("Interpolating monthly totals...")
-target_months <- seq(START_DATE, END_DATE, by = "month")
-
-monthly_template <- expand.grid(
-  date = target_months,
-  governorate = GOVERNORATES,
-  stringsAsFactors = FALSE
+message("Interpolating and averaging monthly totals...")
+interpolated_pop_monthly <- interpolate_population_monthly(
+  observed_pop_totals,
+  START_DATE,
+  END_DATE,
+  GOVERNORATES
 )
-
-# Merge available data into template and interpolate
-interpolated_pop_monthly <- monthly_template |>
-  left_join(observed_pop_totals, by = join_by(date, governorate)) |>
-  group_by(governorate) |>
-  # Add the observed data points that might not fall on the 1st of the month
-  bind_rows(observed_pop_totals |> filter(!(date %in% target_months))) |>
-  arrange(governorate, date) |>
-  mutate(total_population = na.approx(total_population, x = date, rule = 2)) |>
-  filter(date %in% target_months) |>
-  ungroup()
 
 if (any(is.na(interpolated_pop_monthly$total_population))) {
   cli::cli_abort("Found NA values in interpolated population totals.")
@@ -61,6 +49,10 @@ if (any(is.na(interpolated_pop_monthly$total_population))) {
 
 # 4. Apply census proportions to totals
 message("Applying age/sex proportions...")
+
+# We need to ensure the output format matches:
+# date (Date), governorate (chr), sex (Named chr), age_group (Factor), count (num)
+
 final_population_estimates <- interpolated_pop_monthly |>
   inner_join(
     census_age_sex_props,
@@ -68,10 +60,16 @@ final_population_estimates <- interpolated_pop_monthly |>
     relationship = "many-to-many"
   ) |>
   mutate(count = total_population * prop) |>
-  select(date, governorate, sex, age_group, count) |>
   mutate(
-    sex = unlist(list(Males = "Male", Females = "Female")[sex])
-  )
+    sex_label = unlist(list(Males = "Male", Females = "Female")[sex])
+  ) |>
+  select(date, governorate, sex_raw = sex, sex = sex_label, age_group, count)
+
+# The original output had 'sex' as a named character vector where names were "Males"/"Females"
+# and values were "Male"/"Female".
+final_population_estimates <- final_population_estimates |>
+  mutate(sex = setNames(sex, sex_raw)) |>
+  select(date, governorate, sex, age_group, count)
 
 # 5. Save results
 message(paste("Saving results to", POP_EST_DERIVED_PATH))
@@ -83,13 +81,33 @@ saveRDS(final_population_estimates, POP_EST_DERIVED_PATH)
 
 # 6. Exploratory Plots
 message("Generating exploratory plots...")
-library(ggplot2)
 PLOT_DIR <- here::here("figures/exploration/population")
 if (!dir.exists(PLOT_DIR)) {
   dir.create(PLOT_DIR, recursive = TRUE)
 }
 
-# Total population over time
+# Total Gaza Strip population over time
+p_total_gaza <- final_population_estimates |>
+  group_by(date) |>
+  summarise(total_pop = sum(count), .groups = "drop") |>
+  ggplot(aes(x = date, y = total_pop)) +
+  geom_line(linewidth = 1, color = "steelblue") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Total Population Estimates for Gaza Strip",
+    subtitle = "2016 - 2025",
+    y = "Total Population",
+    x = "Date"
+  )
+ggsave(
+  file.path(PLOT_DIR, "total_gaza_population.png"),
+  p_total_gaza,
+  width = 10,
+  height = 6
+)
+
+# Total population over time by governorate
 p_total <- final_population_estimates |>
   group_by(date, governorate) |>
   summarise(total_pop = sum(count), .groups = "drop") |>
@@ -98,7 +116,7 @@ p_total <- final_population_estimates |>
   theme_minimal() +
   labs(
     title = "Total Population Estimates by Governorate",
-    subtitle = "September 2023 - December 2025",
+    subtitle = "2016 - 2025",
     y = "Total Population",
     x = "Date"
   )

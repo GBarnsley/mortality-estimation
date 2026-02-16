@@ -4,19 +4,19 @@
 #' @return A character vector with standardized names
 #' @export
 standardize_governorate <- function(x) {
-  standardized <- dplyr::case_when(
-    x %in% c("Khan Zunis", "Khan Yunis") ~ "Khan Yunis",
-    x %in%
-      c(
-        "Deir al Balah",
-        "Dier al Balah",
-        "Middle Area",
-        "Deir al-Balah",
-        "Deir El Balah"
-      ) ~ "Deir al-Balah",
-    x %in% c("Gaza City", "Gaza") ~ "Gaza",
-    x %in% c("Jabalia", "North Gaza") ~ "North Gaza",
-    TRUE ~ x
+  standardized <- dplyr::case_match(
+    x,
+    c("Khan Zunis", "Khan Yunis") ~ "Khan Yunis",
+    c(
+      "Deir al Balah",
+      "Dier al Balah",
+      "Middle Area",
+      "Deir al-Balah",
+      "Deir El Balah"
+    ) ~ "Deir al-Balah",
+    c("Gaza City", "Gaza") ~ "Gaza",
+    c("Jabalia", "North Gaza") ~ "North Gaza",
+    .default = x
   )
 
   # Check if any non-NA names are not in the canonical list
@@ -155,94 +155,94 @@ clean_census_data <- function(path) {
   return(census_props)
 }
 
-#' Load and combine population estimates from Excel
+#' Load and combine population estimates from CSV
 #'
-#' @param path Path to the Excel file
+#' @param path Path to the CSV file
 #' @return A data frame with date, governorate, and total_population
 #' @export
-load_population_totals <- function(path) {
+load_governorate_population_csv <- function(path) {
   if (!file.exists(path)) {
-    cli::cli_abort("Excel file not found at {.path {path}}")
+    cli::cli_abort("CSV file not found at {.path {path}}")
   }
 
-  sheets <- readxl::excel_sheets(path)
-  required_sheets <- c("Other sources", "GAZA STRIP - OPT Pop Est")
-  missing_sheets <- setdiff(required_sheets, sheets)
-  if (length(missing_sheets) > 0) {
-    cli::cli_abort(
-      "Missing required sheets in Excel file: {.val {missing_sheets}}."
-    )
-  }
+  raw_data <- read.csv(path, stringsAsFactors = FALSE)
 
-  # 1. Baseline from "Other sources"
-  other_sources <- readxl::read_excel(path, sheet = "Other sources")
-
-  baseline_pop <- other_sources |>
-    dplyr::filter(is.na(Date), !is.na(`Population baseline`)) |>
-    dplyr::select(
-      governorate = Governorate,
-      total_population = `Population baseline`
-    ) |>
-    dplyr::mutate(
-      date = as.Date("2023-09-01"),
-      governorate = standardize_governorate(governorate)
-    )
-
-  # 2. 2024 data from "Other sources"
-  estimates_2024 <- other_sources |>
-    dplyr::filter(!is.na(Date)) |>
-    dplyr::mutate(
-      date_num = as.numeric(Date),
-      date = as.Date(date_num, origin = "1899-12-30"),
-      governorate = standardize_governorate(Governorate)
-    ) |>
-    dplyr::mutate(
-      total_population = dplyr::coalesce(
-        Estimate,
-        (`Lower bound` + `Upper bound`) / 2
-      )
-    ) |>
-    dplyr::filter(!is.na(total_population)) |>
-    dplyr::select(date, governorate, total_population)
-
-  # 3. 2025 data from "GAZA STRIP - OPT Pop Est"
-  opt_pop_est_raw <- readxl::read_excel(
-    path,
-    sheet = "GAZA STRIP - OPT Pop Est",
-    skip = 3
-  )
-
-  estimates_2025 <- opt_pop_est_raw |>
-    dplyr::rename(
-      date = Date,
-      governorate = Governorate,
-      total_population = `Population estimate`
-    ) |>
+  clean_data <- raw_data |>
     dplyr::mutate(
       date = as.Date(date),
       governorate = standardize_governorate(governorate)
     ) |>
-    dplyr::filter(
-      governorate %in% GAZA_GOVERNORATES
-    )
-
-  combined_estimates <- dplyr::bind_rows(
-    baseline_pop,
-    estimates_2024,
-    estimates_2025
-  ) |>
-    dplyr::group_by(governorate, date) |>
-    dplyr::summarise(
-      total_population = mean(total_population, na.rm = TRUE),
-      .groups = "drop"
+    dplyr::rename(total_population = pop_estimate) |>
+    dplyr::filter(governorate %in% GAZA_GOVERNORATES) |>
+    # Ensure every date present in the input has all governorates (fill with 0)
+    # This prevents interpolation from bridging over implied zeros
+    tidyr::complete(
+      date,
+      governorate = GAZA_GOVERNORATES,
+      fill = list(total_population = 0)
     ) |>
     dplyr::arrange(governorate, date)
 
-  if (nrow(combined_estimates) == 0) {
-    cli::cli_abort(
-      "No population estimates could be loaded from {.path {path}}."
-    )
-  }
+  return(clean_data)
+}
 
-  return(combined_estimates)
+#' Interpolate Population to Monthly Estimates
+#'
+#' @param observed_pop A data frame with date, governorate, and total_population
+#' @param start_date Date to start estimates
+#' @param end_date Date to end estimates
+#' @param governorates Character vector of governorates to include
+#' @return A data frame with date (1st of month) and total_population
+#' @export
+interpolate_population_monthly <- function(observed_pop,
+                                           start_date,
+                                           end_date,
+                                           governorates) {
+  # Get the expected total population from the first available complete date
+  # (assuming it's constant as per the dataset characteristics)
+  expected_total <- observed_pop |>
+    dplyr::group_by(date) |>
+    dplyr::summarise(total = sum(total_population), .groups = "drop") |>
+    dplyr::pull(total) |>
+    unique() |>
+    max()
+
+  # Create a daily sequence to interpolate
+  daily_template <- expand.grid(
+    date = seq(min(observed_pop$date), max(observed_pop$date), by = "day"),
+    governorate = governorates,
+    stringsAsFactors = FALSE
+  )
+
+  # Merge available data into template and interpolate daily
+  interpolated_pop_daily <- daily_template |>
+    dplyr::left_join(observed_pop, by = dplyr::join_by(date, governorate)) |>
+    dplyr::group_by(governorate) |>
+    dplyr::arrange(date) |>
+    dplyr::mutate(
+      total_population = zoo::na.approx(total_population, x = date, rule = 2)
+    ) |>
+    dplyr::ungroup()
+
+  # Average daily estimates into monthly values and rescale to ensure steady total
+  interpolated_pop_monthly <- interpolated_pop_daily |>
+    dplyr::mutate(month_date = lubridate::floor_date(date, "month")) |>
+    dplyr::filter(
+      month_date >= start_date,
+      month_date <= lubridate::floor_date(end_date, "month")
+    ) |>
+    dplyr::group_by(month_date, governorate) |>
+    dplyr::summarise(
+      total_population = mean(total_population),
+      .groups = "drop"
+    ) |>
+    dplyr::rename(date = month_date) |>
+    # Rescale step: Ensure total across governorates matches expected_total
+    dplyr::group_by(date) |>
+    dplyr::mutate(
+      total_population = total_population * (expected_total / sum(total_population))
+    ) |>
+    dplyr::ungroup()
+
+  return(interpolated_pop_monthly)
 }

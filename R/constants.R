@@ -14,7 +14,7 @@ CONFLICT_START_DATE <- as.Date("2023-10-01")
 
 #' Analysis Start Date
 #' @export
-ANALYSIS_START_DATE <- as_date("2016-01-01")
+ANALYSIS_START_DATE <- as.Date("2016-01-01")
 
 #' Standard Age Breaks
 #' @export
