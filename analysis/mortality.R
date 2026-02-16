@@ -91,10 +91,9 @@ processed_mortality <- raw_mortality |>
   ) |>
   filter(governorate %in% GAZA_GOVERNORATES | governorate == "Unknown") |>
   # Determine cause (Trauma vs Non-Trauma)
-  # Only for dates after conflict started
   mutate(
     cause = case_when(
-      date_death >= CONFLICT_START_DATE & is_trauma(ICD1_Code) ~ "Trauma",
+      is_trauma(ICD1_Code) ~ "Trauma",
       TRUE ~ "Non-Trauma"
     )
   ) |>

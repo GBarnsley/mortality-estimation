@@ -1,5 +1,3 @@
-manuscript/_manuscript/index.html: figures/sampling_flowchart.png manuscript/index.qmd
-	quarto render manuscript/index.qmd
 
 # setup the R environment
 renv.ts: renv.lock
@@ -16,6 +14,9 @@ data/derived-data/mortality.rds: analysis/mortality.R R/mortality_functions.R R/
 
 data/derived-data/conflict.rds: analysis/conflict.R R/conflict_functions.R R/population_functions.R R/constants.R data/raw-data/sensitive/israel_palestine_full_data_up_to-2025-11-28.csv
 	Rscript analysis/conflict.R
+
+data/derived-data/fitting_data.rds data/derived-data/var_mapping.rds: analysis/merge_fitting_data.R R/constants.R data/derived-data/population.rds data/derived-data/mortality.rds data/derived-data/conflict.rds
+	Rscript analysis/merge_fitting_data.R
 
 .PHONY: test
 test:
