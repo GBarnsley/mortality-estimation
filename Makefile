@@ -1,3 +1,5 @@
+data/derived-data/model_fit_basic.rds figures/basic/deaths_by_age.png figures/basic/deaths_by_region.png figures/basic/deaths_over_time.png figures/basic/predicted_vs_observed.png figures/basic/reporting_over_time.png: renv.ts data/derived-data/fitting_data.rds
+	Rscript analysis/estimate_basic.R
 
 # setup the R environment
 renv.ts: renv.lock

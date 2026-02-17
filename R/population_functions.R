@@ -194,19 +194,12 @@ load_governorate_population_csv <- function(path) {
 #' @param governorates Character vector of governorates to include
 #' @return A data frame with date (1st of month) and total_population
 #' @export
-interpolate_population_monthly <- function(observed_pop,
-                                           start_date,
-                                           end_date,
-                                           governorates) {
-  # Get the expected total population from the first available complete date
-  # (assuming it's constant as per the dataset characteristics)
-  expected_total <- observed_pop |>
-    dplyr::group_by(date) |>
-    dplyr::summarise(total = sum(total_population), .groups = "drop") |>
-    dplyr::pull(total) |>
-    unique() |>
-    max()
-
+interpolate_population_monthly <- function(
+  observed_pop,
+  start_date,
+  end_date,
+  governorates
+) {
   # Create a daily sequence to interpolate
   daily_template <- expand.grid(
     date = seq(min(observed_pop$date), max(observed_pop$date), by = "day"),
@@ -239,9 +232,6 @@ interpolate_population_monthly <- function(observed_pop,
     dplyr::rename(date = month_date) |>
     # Rescale step: Ensure total across governorates matches expected_total
     dplyr::group_by(date) |>
-    dplyr::mutate(
-      total_population = total_population * (expected_total / sum(total_population))
-    ) |>
     dplyr::ungroup()
 
   return(interpolated_pop_monthly)
