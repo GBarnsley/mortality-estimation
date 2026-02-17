@@ -30,5 +30,5 @@ calculate_age <- function(start_date, end_date) {
 #' @export
 is_trauma <- function(icd_code) {
   # External causes of morbidity and mortality (V01-Y98)
-  grepl("^[V-Y]", icd_code)
+  grepl("(Y36|Y36.*)", icd_code)
 }

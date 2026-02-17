@@ -110,8 +110,12 @@ p <- df_age |>
     filter_out(type == "y_true", preconflict) |>
     mutate(
         type = recode(type, y_obs = "Observed", y_true = "Estimated"),
-        preconflict = if_else(preconflict, "Pre-conflict", "Conflict") |>
-            ordered(levels = c("Pre-conflict", "Conflict"))
+        preconflict = if_else(
+            preconflict,
+            "Pre-October 7th",
+            "Post-October 7th"
+        ) |>
+            ordered(levels = c("Pre-October 7th", "Post-October 7th"))
     ) |>
     ggplot(aes(x = age, y = deaths, fill = type)) +
     geom_col(position = "dodge") +
@@ -120,7 +124,7 @@ p <- df_age |>
     labs(
         x = "Age group",
         fill = "Count type",
-        y = "Average annual non-trauma deaths",
+        y = "Average annual non-conflict deaths",
         subtitle = subtitle
     ) +
     theme(
@@ -157,8 +161,12 @@ p <- df_region |>
     filter_out(type == "y_true", preconflict) |>
     mutate(
         type = recode(type, y_obs = "Observed", y_true = "Estimated"),
-        preconflict = if_else(preconflict, "Pre-conflict", "Conflict") |>
-            ordered(levels = c("Pre-conflict", "Conflict"))
+        preconflict = if_else(
+            preconflict,
+            "Pre-October 7th",
+            "Post-October 7th"
+        ) |>
+            ordered(levels = c("Pre-October 7th", "Post-October 7th"))
     ) |>
     ggplot(aes(x = region, y = deaths, fill = type)) +
     geom_col(position = "dodge") +
@@ -167,7 +175,7 @@ p <- df_region |>
     labs(
         x = "Governorate",
         fill = "Count type",
-        y = "Average annual non-trauma deaths",
+        y = "Average annual non-conflict deaths",
         subtitle = subtitle
     ) +
     theme(
@@ -191,7 +199,7 @@ p <- ggplot(total_over_time, aes(x = time)) +
     theme_minimal() +
     labs(
         x = "Time",
-        y = "Average monthly non-trauma deaths",
+        y = "Average monthly non-conflict deaths",
         color = "Count type",
         subtitle = subtitle
     ) +
@@ -245,7 +253,7 @@ p <- ggplot(posterior_predictions, aes(x = time)) +
     facet_grid2(sex_age ~ region, scales = "free_y", independent = "y") +
     labs(
         x = "Time",
-        y = "Monthly non-trauma deaths",
+        y = "Monthly non-conflict deaths",
         color = "",
         subtitle = subtitle
     ) +
